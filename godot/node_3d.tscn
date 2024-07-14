@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://cu2xm8nqg7l3w"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="SuteraWorldLoader" type="SuteraWorldLoader" parent="."]

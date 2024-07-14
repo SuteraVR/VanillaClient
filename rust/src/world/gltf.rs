@@ -12,7 +12,7 @@ pub struct SuteraGltfObject{
 }
 
 impl SuteraGltfObject{
-    pub async fn new(&self,path:String,transform:[f32;10],colliders:Vec<CollisionObject3D>) -> Self {
+    pub fn new(&self,path:String,transform:[f32;10],colliders:Vec<CollisionObject3D>) -> Self {
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
         let fixed_path = self.path_solver(path);
@@ -31,30 +31,30 @@ impl SuteraGltfObject{
         }
     }
 
-    pub async fn generate_model(&mut self, root:&mut Gd<Node>){
+    pub fn generate_model(&mut self, root:&mut Gd<Node>){
         let node = self.doc.generate_scene(self.state.clone());
         match node{
-            Some(value) => {
-                let value = self.set_object(&mut value).await();
-                root.add_child(value.clone());
+            Some(mut value) => {
+                value = self.set_object(value);
+                root.add_child(value);
             },
             None => panic!("Couldn't read glTF file."),
         }
     }
 
-    async fn path_solver(&self,path: String) -> GString{
+    fn path_solver(&self,path: String) -> GString{
         let header: String = String::from("res://models/");
         let path_str = &format!("{}{}",header,path);
         GString::from(path_str)
     }
 
-    async fn set_object(self, obj:&mut Gd<Node>)-> Gd<Node>{
-        let mut obj_3d = obj.cast::<Node3D>();
+     fn set_object(&self, obj:Gd<Node>)-> Gd<Node>{
+        let mut obj_3d = obj.clone().cast::<Node3D>();
         let obj_position:Vector3 = Vector3::new(self.transform[0],self.transform[1],self.transform[2]);
-        let obj_rotation:Quaternion = Queternion::new(self.transform[3],self.transform[4],self.transform[5],self.transform[6]);
+        let obj_rotation:Quaternion = Quaternion::new(self.transform[3],self.transform[4],self.transform[5],self.transform[6]);
         let obj_scale:Vector3 = Vector3::new(self.transform[7],self.transform[8],self.transform[9]);
-        obj_3d.set_position(obj_rotation);
-        obj_3d.set_rotation(obj_rotation);
+        obj_3d.set_position(obj_position);
+        obj_3d.set_quaternion(obj_rotation);
         obj_3d.set_scale(obj_scale);
         obj_3d.upcast::<Node>()
     }

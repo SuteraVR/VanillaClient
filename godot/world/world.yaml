@@ -1,0 +1,66 @@
+metadata:
+  type: sutera-scene@0.1.0
+  name: Sakura-shrine"桜神社街道"
+  version: 0.1.0
+specs:
+  spawnpoint:
+      x: 0
+      y: 0
+      z: 0 
+      pitch: 0
+      yaw: 0
+  world_border:                              ##越えたらリスポーン
+      x_min: -100
+      x_max: 100
+      y_min: -300
+      y_max: 300
+      z_min: -100
+      z_max: 100
+   
+  objects:
+  - name: sakura-shrine 
+    model:
+      type: gltf
+      path: world/sakura_shrine.glb
+      transform:
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+
+  - name: gaitou_right
+    model:
+       type: gltf
+       path: world/gaitou.glb
+       transform:
+        - 2.5
+        - 0
+        - 29.5
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+  - name: gaitou_left
+    model:
+       type: gltf
+       path: world/gaitou.glb
+       transform:
+        - -2.5
+        - 0
+        - 29.5
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0

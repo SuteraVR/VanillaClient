@@ -10,3 +10,4 @@ crate-type = ["cdylib"]
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_yaml = "0.9.34"
+tokio = { version = "1.38.0", features = ["full"]}
