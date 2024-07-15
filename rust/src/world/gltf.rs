@@ -8,21 +8,21 @@ pub struct SuteraGltfObject{
     doc: Gd<GltfDocument>,
     state: Gd<GltfState>,
     transform: [f32;10],
-    collider: Vec<CollisionObject3D>,
+    //追加予定：collider: Vec<CollisionObject3D>,
 }
 
 impl SuteraGltfObject{
-    pub fn new(&self,path:String,transform:[f32;10],colliders:Vec<CollisionObject3D>) -> Self {
+    pub fn new(path:String,transform:[f32;10]) -> Self {
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
-        let fixed_path = self.path_solver(path);
+        let fixed_path = SuteraGltfObject::path_solver(path);
         let error = model_doc.append_from_file(fixed_path,model_state.clone());
         if error == godot::engine::global::Error::OK{
             Self{
                 doc: model_doc,
                 state: model_state,
                 transform,
-                collider: colliders
+                //collider,
             }
         }
         //不正なpathやmodelが入ってきたとき
@@ -42,7 +42,7 @@ impl SuteraGltfObject{
         }
     }
 
-    fn path_solver(&self,path: String) -> GString{
+    pub fn path_solver(path: String) -> GString{
         let header: String = String::from("res://models/");
         let path_str = &format!("{}{}",header,path);
         GString::from(path_str)
