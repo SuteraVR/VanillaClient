@@ -4,9 +4,11 @@ use serde::Deserialize;
 use serde_yaml::{Value,Deserializer,Sequence};
 use godot::prelude::*;
 use super::gltf::SuteraGltfObject;
+use super::error::SpanErr;
 use std::option::Option;
 use tracing::{instrument,Span,field::Empty};
 use thiserror::Error;
+use std::borrow::Cow;
 
 #[instrument(skip_all,name="world_loader",level = "trace")]
 pub fn world_loader(yaml_path: String)->Result<(), serde_yaml::Error>{
@@ -23,20 +25,43 @@ pub fn world_loader(yaml_path: String)->Result<(), serde_yaml::Error>{
                         let transform:[f32;10] = get_transform(&model);
                         SuteraGltfObject::new(path.to_string(),transform);
                     }
+                    else{worldformat_error("path");}
                 },
                 Some(model_type)=>{
-                    godot_error!("This type is not yet implemented.")
+                    let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr(model_type.as_str().unwrap().to_string()));
+                    tracing::error!("{}",e.error);
+                    eprintln!("{}",color_spantrace::colorize(&e.span));
                 },
-                None => godot_error!("Object's type value is invalid")
+                None => worldformat_error("type"),
             }
+        }
+        else{
+            worldformat_error("model");
         }
     }
     Ok(())
 }
 
 #[instrument(skip_all,name="get_sequence",level = "trace")]
-fn get_sequence(value:Value) -> Option<Sequence>{
-    value.get("specs")?.get("objects")?.as_sequence().cloned()
+fn get_sequence(value:Value) -> Result<Sequence,SpanErr<WorldLoadingError>>{
+    if let Some(value) = value.get("specs").clone(){
+        if let Some(value) = value.get("objects").clone(){
+            if let Some(sequence) = value.as_sequence(){
+                Ok(sequence.clone())
+            }
+            else{Err(WorldLoadingError::InvalidSuteraFormatErr("getting sequence".to_string()).into())}
+        }
+        else{Err(WorldLoadingError::InvalidSuteraFormatErr("objects".to_string()).into())}
+    }
+    else{Err(WorldLoadingError::InvalidSuteraFormatErr("specs".to_string()).into())}
+}
+
+#[instrument(skip_all,name="worldformaterror",level="trace")]
+fn worldformat_error<'a, T:Into<Cow<'a, str>>>(key:T){
+    let key: String = key.into().to_string();
+    let e = SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(key.clone()));
+    tracing::error!("{}",e.error);
+    eprintln!("{}",color_spantrace::colorize(&e.span));
 }
 
 
@@ -60,7 +85,11 @@ fn get_transform(model:&Value) -> [f32;10]{
 }
 
 #[derive(Error,Debug)]
-enum worldLoadingError{
-    #[error("Calling {0} is not allowed!")]
-    CallingThisNameIsNotAllowed(String),
+pub enum WorldLoadingError{
+    #[error("This yaml file does not conform to SuteraWorldFormat. detail: {0} key was not founded.")]
+    InvalidSuteraFormatErr(String),
+    #[error("This 3Dobject type '{0}' is not yet implemented.")]
+    InvalidObjectTypeErr(String),
+    #[error("Failed to load yaml file. Please check file.")]
+    SerdeYamlLoadingError,
 }
