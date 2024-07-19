@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bywn5vqc7ifas"
-path="res://.godot/imported/gaitou.glb-8621968175857a9cd49632f0934441c2.scn"
+path="res://.godot/imported/gaitou.glb-6c4d303eca8d7bf43376aa6293110346.scn"
 
 [deps]
 
-source_file="res://world/gaitou.glb"
-dest_files=["res://.godot/imported/gaitou.glb-8621968175857a9cd49632f0934441c2.scn"]
+source_file="res://models/world/gaitou.glb"
+dest_files=["res://.godot/imported/gaitou.glb-6c4d303eca8d7bf43376aa6293110346.scn"]
 
 [params]
 

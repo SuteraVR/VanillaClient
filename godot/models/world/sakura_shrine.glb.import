@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://blq1hsrmcc2o5"
-path="res://.godot/imported/room.glb-1dcf3927c696e9650597d8f85bcb274e.scn"
+uid="uid://bpjo28nuyuw7a"
+path="res://.godot/imported/sakura_shrine.glb-aff21ce2c3245a00d035d94ed13cefa5.scn"
 
 [deps]
 
-source_file="res://world/room.glb"
-dest_files=["res://.godot/imported/room.glb-1dcf3927c696e9650597d8f85bcb274e.scn"]
+source_file="res://models/world/sakura_shrine.glb"
+dest_files=["res://.godot/imported/sakura_shrine.glb-aff21ce2c3245a00d035d94ed13cefa5.scn"]
 
 [params]
 

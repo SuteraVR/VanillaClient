@@ -16,6 +16,7 @@ impl SuteraGltfObject{
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
         let fixed_path = SuteraGltfObject::path_solver(path);
+        godot_print!("fixed_path: {}",fixed_path);
         let error = model_doc.append_from_file(fixed_path,model_state.clone());
         if error == godot::engine::global::Error::OK{
             Self{
@@ -34,8 +35,8 @@ impl SuteraGltfObject{
     pub fn generate_model(&mut self, root:&mut Gd<Node>){
         let node = self.doc.generate_scene(self.state.clone());
         match node{
-            Some(mut value) => {
-                value = self.set_object(value);
+            Some(value) => {
+                let value = self.set_object(&value);
                 root.add_child(value);
             },
             None => panic!("Couldn't read glTF file."),
@@ -48,9 +49,10 @@ impl SuteraGltfObject{
         GString::from(path_str)
     }
 
-     fn set_object(&self, obj:Gd<Node>)-> Gd<Node>{
+     fn set_object(&self, obj:&Gd<Node>)-> Gd<Node>{
         let mut obj_3d = obj.clone().cast::<Node3D>();
         let obj_position:Vector3 = Vector3::new(self.transform[0],self.transform[1],self.transform[2]);
+        godot_print!("set position:({}, {}, {})",self.transform[0],self.transform[1],self.transform[2]);
         let obj_rotation:Quaternion = Quaternion::new(self.transform[3],self.transform[4],self.transform[5],self.transform[6]);
         let obj_scale:Vector3 = Vector3::new(self.transform[7],self.transform[8],self.transform[9]);
         obj_3d.set_position(obj_position);

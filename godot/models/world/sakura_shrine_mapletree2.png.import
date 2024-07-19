@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cniqbeb0tfxsj"
-path.s3tc="res://.godot/imported/sakura_shrine_sakura6.png-9297bf059c5ce668711addf4fd638ff2.s3tc.ctex"
+uid="uid://c1tqrg0xonar6"
+path.s3tc="res://.godot/imported/sakura_shrine_mapletree2.png-b2739b4cd51fa55c0652fc942b67b1d4.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "63f5429aa451a91519265945b58db792"
+"md5": "1d01e9a3c744735372a47976091ae49b"
 }
 
 [deps]
 
-source_file="res://world/sakura_shrine_sakura6.png"
-dest_files=["res://.godot/imported/sakura_shrine_sakura6.png-9297bf059c5ce668711addf4fd638ff2.s3tc.ctex"]
+source_file="res://models/world/sakura_shrine_mapletree2.png"
+dest_files=["res://.godot/imported/sakura_shrine_mapletree2.png-b2739b4cd51fa55c0652fc942b67b1d4.s3tc.ctex"]
 
 [params]
 
