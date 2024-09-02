@@ -1,7 +1,9 @@
+use super::error::SpanErr;
+use super::yaml_loader::WorldLoadingError;
+#[allow(unused_imports)]
 use godot::classes::{CollisionObject3D, GltfDocument, GltfState};
 use godot::obj::NewGd;
 use godot::prelude::*;
-use tokio::sync::{mpsc, oneshot};
 
 /// Loaded 3d model from world yaml file
 pub struct SuteraGltfObject {
@@ -12,34 +14,38 @@ pub struct SuteraGltfObject {
 }
 
 impl SuteraGltfObject {
-    pub fn new(path: String, transform: [f32; 10]) -> Self {
+    pub fn new(path: String, transform: [f32; 10]) -> Result<Self, SpanErr<WorldLoadingError>> {
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
         let fixed_path = SuteraGltfObject::path_solver(path);
         godot_print!("fixed_path: {}", fixed_path);
-        let error = model_doc.append_from_file(fixed_path, model_state.clone());
-        if error == godot::engine::global::Error::OK {
-            Self {
+        match model_doc.append_from_file(fixed_path, model_state.clone()) {
+            godot::global::Error::OK => Ok(Self {
                 doc: model_doc,
                 state: model_state,
                 transform,
                 //collider,
-            }
-        }
-        //不正なpathやmodelが入ってきたとき
-        else {
-            panic!("Incorrect yaml or model file. error: {:?}", error);
+            }),
+            _ => Err(SpanErr::from(WorldLoadingError::GltfFileOpenError(
+                "Incorrect gltf path or this gltf file is broken.".to_string(),
+            ))),
         }
     }
 
-    pub fn generate_model(&mut self, root: &mut Gd<Node>) {
+    pub fn generate_model(
+        &mut self,
+        root: &mut Gd<Node>,
+    ) -> Result<(), SpanErr<WorldLoadingError>> {
         let node = self.doc.generate_scene(self.state.clone());
         match node {
             Some(value) => {
                 let value = self.set_object(&value);
                 root.add_child(value);
+                Ok(())
             }
-            None => panic!("Couldn't read glTF file."),
+            None => Err(SpanErr::from(WorldLoadingError::Generate3DModelError(
+                "Couldn't generate scene from gltf file.".to_string(),
+            ))),
         }
     }
 

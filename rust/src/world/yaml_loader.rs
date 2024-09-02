@@ -7,37 +7,50 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::prelude::*;
 use thiserror::Error;
-use tracing::{field::Empty, instrument, Span};
+use tracing::instrument;
 
-#[instrument(name="load_world", level = "trace")]
-pub fn load_world(yaml_path: String, parent_node: &mut Gd<Node>)->Result<(),WorldLoadingError>{
+#[instrument(name = "load_world", level = "trace")]
+pub fn load_world(
+    yaml_path: String,
+    parent_node: &mut Gd<Node>,
+) -> Result<(), SpanErr<WorldLoadingError>> {
     let mut base_node = parent_node.clone();
 
     //yamlファイルのpathを開く
-    let mut yaml_file = File::open(yaml_path).map_err(|e|{WorldLoadingError::YamlFileOpenError(e.to_string())})?;
+    let mut yaml_file = File::open(yaml_path)
+        .map_err(|e| SpanErr::from(WorldLoadingError::InvalidYamlPathErr(e.to_string())))?;
     let mut contents = String::new();
-    yaml_file.read_to_string(&mut contents).map_err(|e|{WorldLoadingError::YamlFileOpenError(e.to_string())})?; //yamlファイルの内容をString型に
+    yaml_file
+        .read_to_string(&mut contents)
+        .map_err(|e| SpanErr::from(WorldLoadingError::YamlFileOpenError(e.to_string())))?; //yamlファイルの内容をString型に
 
     let value = Value::deserialize(Deserializer::from_str(&contents))  //yamlファイルをデシリアライズしてserdeのValue型(Enum型)を得る
-        .map_err(|e|{WorldLoadingError::SerdeYamlLoadingError(e.to_string())})?;
+        .map_err(|e|{SpanErr::from(WorldLoadingError::SerdeYamlLoadingError(e.to_string()))})?;
 
-    let sequence = get_sequence(&value)   //objectsのsequenceを取得
-        .map_err(|e|{WorldLoadingError::SerdeYamlLoadingError(e.to_string())})?;
+    let sequence = get_sequence(&value)?; //objectsのsequenceを取得
 
     for obj in sequence.iter() {
-        let model = match obj.get("model"){
+        let model = match obj.get("model") {
             Some(model) => model,
-            None => {return Err(WorldLoadingError::InvalidSuteraFormatErr("model".to_string()))}
+            None => {
+                return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+                    "'model' key was not found.".to_string(),
+                )))
+            }
         };
         match model.get("type") {
             Some(model_type) if model_type.as_str().unwrap() == "gltf" => {
-                let path = match model.get("path").and_then(|p| p.as_str()){
+                let path = match model.get("path").and_then(|p| p.as_str()) {
                     Some(path) => path,
-                    None => {return Err(WorldLoadingError::InvalidSuteraFormatErr("path".to_string()))},
+                    None => {
+                        return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+                            "'path' key was not found.".to_string(),
+                        )))
+                    }
                 };
-                let transform = get_transform(&model)?;
-                let mut gltf_obj = SuteraGltfObject::new(path.to_string(), transform);
-                gltf_obj.generate_model(&mut base_node);
+                let transform = get_transform(model)?;
+                let mut gltf_obj = SuteraGltfObject::new(path.to_string(), transform)?;
+                gltf_obj.generate_model(&mut base_node)?;
             }
             Some(model_type) => {
                 let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr(
@@ -45,9 +58,11 @@ pub fn load_world(yaml_path: String, parent_node: &mut Gd<Node>)->Result<(),Worl
                 ));
                 tracing::error!("{}", e.error);
                 eprintln!("{}", color_spantrace::colorize(&e.span));
-                return Err(e.error);
+                return Err(e);
             }
-            None => {return Err(worldformat_error("type").error);},
+            None => {
+                return Err(SpanErr::from(worldformat_error("type").error));
+            }
         }
     }
     Ok(())
@@ -55,43 +70,51 @@ pub fn load_world(yaml_path: String, parent_node: &mut Gd<Node>)->Result<(),Worl
 
 //yamlから3dモデルの情報のsequence(Vector)を取得
 #[instrument(skip_all, name = "get_sequence", level = "trace")]
-fn get_sequence(value: &Value) -> Result<Sequence, WorldLoadingError> {
-    if let Some(specs) = value.get("specs").clone() {   //specsのデータを取得
-        if let Some(value) = specs.get("objects").clone() {
-            if let Some(sequence) = value.as_sequence() {
-                Ok(sequence.clone())
-            } else {
-                Err(
-                    WorldLoadingError::InvalidSuteraFormatErr("getting sequence".to_string())
-                        .into(),
-                )
-            }
-        } else {
-            Err(WorldLoadingError::InvalidSuteraFormatErr("objects".to_string()).into())
+fn get_sequence(value: &Value) -> Result<Sequence, SpanErr<WorldLoadingError>> {
+    let specs = match value.get("specs") {
+        //specsのデータを取得
+        Some(specs) => specs,
+        None => {
+            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+                "'specs' key was not found.".to_string(),
+            )))
         }
-    } else {
-        Err(WorldLoadingError::InvalidSuteraFormatErr("specs".to_string()).into())
-    }
+    };
+    let objects = match specs.get("objects") {
+        Some(objects) => objects,
+        None => {
+            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+                "'objects' key was not found.".to_string(),
+            )))
+        }
+    };
+    match objects.as_sequence() {
+        Some(sequence) => return Ok(sequence.clone()),
+        None => {
+            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+                "couldn't get sequence from this object.".to_string(),
+            )))
+        }
+    };
 }
 
 #[instrument(skip_all, name = "worldformaterror", level = "trace")]
-fn worldformat_error<'a, T: Into<Cow<'a, str>>>(key: T)->SpanErr<WorldLoadingError> {
-    let key: String = key.into().to_string();
-    let e = SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(key.clone()));
+fn worldformat_error<'a, T: Into<Cow<'a, str>>>(key: T) -> SpanErr<WorldLoadingError> {
+    let reason = format!("'{}' key was not found ", key.into());
+    let e = SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(reason));
     tracing::error!("{}", e.error);
     eprintln!("{}", color_spantrace::colorize(&e.span));
     return e;
 }
 
 #[instrument(skip_all, name = "get_transform", level = "trace")]
-fn get_transform(model: &Value) -> Result<[f32; 10], WorldLoadingError> {
+fn get_transform(model: &Value) -> Result<[f32; 10], SpanErr<WorldLoadingError>> {
     let mut transform: [f32; 10] = [0.0; 10];
     if let Some(transform_vec) = model.get("transform").and_then(|s| s.as_sequence()) {
         if transform_vec.len() != 10 {
-            Err(WorldLoadingError::InvalidSuteraFormatErr(
+            Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
                 "Object transform need 10 numbers:(x,y,z,rx,ry,rz,rw,sx,sy,sz)".to_string(),
-            )
-            .into())
+            )))
         } else {
             for i in 0..10 {
                 if let Some(element) = transform_vec[i].as_f64() {
@@ -101,9 +124,9 @@ fn get_transform(model: &Value) -> Result<[f32; 10], WorldLoadingError> {
             Ok(transform)
         }
     } else {
-        Err(
-            WorldLoadingError::InvalidSuteraFormatErr("'transform' key was not found.".to_string())
-        )
+        Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+            "'transform' key was not found.".to_string(),
+        )))
     }
 }
 
@@ -119,4 +142,8 @@ pub enum WorldLoadingError {
     SerdeYamlLoadingError(String),
     #[error("Failed to opening yaml file. Please check file. Reason: {0}")]
     YamlFileOpenError(String),
+    #[error("Failed to opening glTF file. Please check file. Reason: {0}")]
+    GltfFileOpenError(String),
+    #[error("Failed to generate 3d model. Please check file or settings. Reason: {0}")]
+    Generate3DModelError(String),
 }

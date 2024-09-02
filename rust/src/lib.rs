@@ -1,11 +1,9 @@
 pub mod world;
 use godot::classes::*;
 use godot::prelude::*;
-#[allow(unused_imports)]
-use tracing::{instrument,Span,field::Empty};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt,Layer};
+use tracing::instrument;
 use tracing_error::ErrorLayer;
-use thiserror::Error;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
 //create godot entrypoint
 struct SuteraExtension;
@@ -17,24 +15,28 @@ unsafe impl ExtensionLibrary for SuteraExtension {}
 #[class(base=Node)]
 struct SuteraWorldLoader {
     once: bool,
-    init_once : bool,
+    init_once: bool,
     base: Base<Node>,
 }
 
 #[godot_api]
 impl INode for SuteraWorldLoader {
-    #[instrument(skip_all,name="init",level = "info")]
+    #[instrument(skip_all, name = "init", level = "info")]
     fn init(base: Base<Node>) -> Self {
         let once = true;
         let init_once = true;
         godot_print!("test");
-        Self { once, init_once, base }
+        Self {
+            once,
+            init_once,
+            base,
+        }
     }
 
-    #[instrument(skip_all,name="process",level = "info")]
+    #[instrument(skip_all, name = "process", level = "info")]
     #[allow(unused_variables)]
-    fn process(&mut self,delta:f64){
-        if self.init_once{
+    fn process(&mut self, delta: f64) {
+        if self.init_once {
             //initが2回実行されてしまうため、初期化処理などはここで処理
             tracing_subscriber::Registry::default()
                 .with(tracing_subscriber::fmt::layer()  //エラーメッセージを文字列に整形
@@ -50,13 +52,17 @@ impl INode for SuteraWorldLoader {
         }
     }
 
-    #[instrument(skip_all,name="input",level = "info")]
+    #[instrument(skip_all, name = "input", level = "info")]
     fn input(&mut self, event: Gd<InputEvent>) {
         if event.get_class() == GString::from("InputEventKey") && self.once {
             tracing::info!("received eventkey!");
             let yaml_path = String::from("../godot/models/world/world.yaml");
-            let _ = world::yaml_loader::load_world(yaml_path, &mut self.base_mut())
-                .expect("Yaml failed");
+            match world::yaml_loader::load_world(yaml_path, &mut self.base_mut()) {
+                Ok(()) => (),
+                Err(e) => {
+                    tracing::error!("{}", e.error);
+                }
+            }
             self.once = false;
         }
     }
