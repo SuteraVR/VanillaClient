@@ -57,16 +57,12 @@ pub fn load_world(
                 // model_type が空だったときの処理
                 let Some(type_str) = model_type.as_str() else {
                     let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr("model_type was None.".to_string()));
-                    tracing::error!("{}", e.error);
-                    eprintln!("{}", color_spantrace::colorize(&e.span));
                     return Err(e);
                 };
 
                 let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr(
                     type_str.to_string()
                 ));
-                tracing::error!("{}", e.error);
-                eprintln!("{}", color_spantrace::colorize(&e.span));
                 return Err(e);
             }
             None => {
@@ -102,8 +98,6 @@ fn get_sequence(value: &Value) -> Result<Sequence, SpanErr<WorldLoadingError>> {
 fn worldformat_error<'a, T: Into<Cow<'a, str>>>(key: T) -> SpanErr<WorldLoadingError> {
     let reason = format!("'{}' key was not found ", key.into());
     let e = SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(reason));
-    tracing::error!("{}", e.error);
-    eprintln!("{}", color_spantrace::colorize(&e.span));
     return e;
 }
 
