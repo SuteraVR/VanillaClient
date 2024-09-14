@@ -36,17 +36,12 @@ impl SuteraGltfObject {
         &mut self,
         root: &mut Gd<Node>,
     ) -> Result<(), SpanErr<WorldLoadingError>> {
-        let node = self.doc.generate_scene(self.state.clone());
-        match node {
-            Some(value) => {
-                let value = self.set_object(&value);
-                root.add_child(value);
-                Ok(())
-            }
-            None => Err(SpanErr::from(WorldLoadingError::Generate3DModelError(
-                "Couldn't generate scene from gltf file.".to_string(),
-            ))),
-        }
+        let Some(node) = self.doc.generate_scene(self.state.clone()) else {return Err(SpanErr::from(WorldLoadingError::Generate3DModelError(
+            "Couldn't generate scene from gltf file.".to_string(),
+        )))};
+        let node = self.set_object(&node);
+        root.add_child(node);
+        Ok(())
     }
 
     pub fn path_solver(path: String) -> GString {

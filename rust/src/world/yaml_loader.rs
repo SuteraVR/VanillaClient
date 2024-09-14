@@ -30,16 +30,14 @@ pub fn load_world(
     let sequence = get_sequence(&value)?; //objectsのsequenceを取得
 
     for obj in sequence.iter() {
-        let model = match obj.get("model") {
-            Some(model) => model,
-            None => {
-                return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                    "'model' key was not found.".to_string(),
-                )))
-            }
+        let Some(model) = obj.get("model") else{
+            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+                "'model' key was not found.".to_string(),
+            )))
         };
         match model.get("type") {
-            Some(model_type) if model_type.as_str().unwrap() == "gltf" => {
+            // model_type がgltfだった場合の処理
+            Some(model_type) if model_type.as_str() == Some("gltf") => {
                 let path = match model.get("path").and_then(|p| p.as_str()) {
                     Some(path) => path,
                     None => {
@@ -52,9 +50,20 @@ pub fn load_world(
                 let mut gltf_obj = SuteraGltfObject::new(path.to_string(), transform)?;
                 gltf_obj.generate_model(&mut base_node)?;
             }
+
+            // model_type が対応しているものでなかった場合
             Some(model_type) => {
+
+                // model_type が空だったときの処理
+                let Some(type_str) = model_type.as_str() else {
+                    let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr("model_type was None.".to_string()));
+                    tracing::error!("{}", e.error);
+                    eprintln!("{}", color_spantrace::colorize(&e.span));
+                    return Err(e);
+                };
+
                 let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr(
-                    model_type.as_str().unwrap().to_string(),
+                    type_str.to_string()
                 ));
                 tracing::error!("{}", e.error);
                 eprintln!("{}", color_spantrace::colorize(&e.span));
@@ -71,22 +80,13 @@ pub fn load_world(
 //yamlから3dモデルの情報のsequence(Vector)を取得
 #[instrument(skip_all, name = "get_sequence", level = "trace")]
 fn get_sequence(value: &Value) -> Result<Sequence, SpanErr<WorldLoadingError>> {
-    let specs = match value.get("specs") {
-        //specsのデータを取得
-        Some(specs) => specs,
-        None => {
-            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                "'specs' key was not found.".to_string(),
-            )))
-        }
-    };
-    let objects = match specs.get("objects") {
-        Some(objects) => objects,
-        None => {
-            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                "'objects' key was not found.".to_string(),
-            )))
-        }
+    let Some(specs) = value.get("specs") else{
+        return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr("'specs' key was not found.".to_string(),)
+    ))};
+    let Some(objects) = specs.get("objects") else{
+        return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
+            "'objects' key was not found.".to_string(),
+        )))
     };
     match objects.as_sequence() {
         Some(sequence) => return Ok(sequence.clone()),
