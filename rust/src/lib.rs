@@ -14,8 +14,8 @@ unsafe impl ExtensionLibrary for SuteraExtension {}
 #[derive(GodotClass)]
 #[class(base=Node)]
 struct SuteraWorldLoader {
-    once: bool,
-    init_once: bool,
+    is_initialized: bool,
+    is_inputted: bool,
     base: Base<Node>,
 }
 
@@ -23,12 +23,12 @@ struct SuteraWorldLoader {
 impl INode for SuteraWorldLoader {
     #[instrument(skip_all, name = "init", level = "info")]
     fn init(base: Base<Node>) -> Self {
-        let once = true;
-        let init_once = true;
+        let is_initialized = true;
+        let is_inputted = true;
         godot_print!("test");
         Self {
-            once,
-            init_once,
+            is_initialized,
+            is_inputted,
             base,
         }
     }
@@ -36,7 +36,7 @@ impl INode for SuteraWorldLoader {
     #[instrument(skip_all, name = "process", level = "info")]
     #[allow(unused_variables)]
     fn process(&mut self, delta: f64) {
-        if self.init_once {
+        if self.is_initialized{
             //initが2回実行されてしまうため、初期化処理などはここで処理
             tracing_subscriber::Registry::default()
                 .with(tracing_subscriber::fmt::layer()  //エラーメッセージを文字列に整形
@@ -48,13 +48,13 @@ impl INode for SuteraWorldLoader {
                 .with(ErrorLayer::default())
                 .try_init()
                 .expect("failed to initialize tracing_subscriber.");
-            self.init_once = false;
+            self.is_initialized = false;
         }
     }
 
     #[instrument(skip_all, name = "input", level = "info")]
     fn input(&mut self, event: Gd<InputEvent>) {
-        if event.get_class() == GString::from("InputEventKey") && self.once {
+        if event.get_class() == GString::from("InputEventKey") && self.is_inputted {
             tracing::info!("received eventkey!");
             let yaml_path = String::from("../godot/models/world/world.yaml");
             match world::yaml_loader::load_world(yaml_path, &mut self.base_mut()) {
@@ -63,7 +63,7 @@ impl INode for SuteraWorldLoader {
                     tracing::error!("{}", e.error);
                 }
             }
-            self.once = false;
+            self.is_inputted = false;
         }
     }
 }
