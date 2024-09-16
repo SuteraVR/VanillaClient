@@ -17,22 +17,22 @@ pub fn load_world(
     let mut base_node = parent_node.clone();
 
     //yamlファイルのpathを開く
-    let mut yaml_file = File::open(yaml_path)
-        .map_err(|e| SpanErr::from(WorldLoadingError::InvalidYamlPathErr(e.to_string())))?;
+    let mut yaml_file = File::open(&yaml_path)
+        .map_err(|e| SpanErr::from(WorldLoadingError::InvalidYamlPath(e.to_string())))?;
     let mut contents = String::new();
     yaml_file
         .read_to_string(&mut contents)
-        .map_err(|e| SpanErr::from(WorldLoadingError::YamlFileOpenError(e.to_string())))?; //yamlファイルの内容をString型に
+        .map_err(|e| SpanErr::from(WorldLoadingError::YamlFileOpen(e.to_string(),yaml_path.clone())))?; //yamlファイルの内容をString型に
 
     let value = Value::deserialize(Deserializer::from_str(&contents))  //yamlファイルをデシリアライズしてserdeのValue型(Enum型)を得る
-        .map_err(|e|{SpanErr::from(WorldLoadingError::SerdeYamlLoadingError(e.to_string()))})?;
+        .map_err(|e| SpanErr::from(WorldLoadingError::SerdeYamlLoading(e.to_string())))?;
 
-    let sequence = get_sequence(&value)?; //objectsのsequenceを取得
+    let sequence = get_sequence(&value,yaml_path.clone())?; //objectsのsequenceを取得
 
     for obj in sequence.iter() {
         let Some(model) = obj.get("model") else{
-            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                "'model' key was not found.".to_string(),
+            return Err(SpanErr::from(WorldLoadingError::KeysNotFound(
+                "model".to_string(), yaml_path
             )))
         };
         match model.get("type") {
@@ -41,12 +41,12 @@ pub fn load_world(
                 let path = match model.get("path").and_then(|p| p.as_str()) {
                     Some(path) => path,
                     None => {
-                        return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                            "'path' key was not found.".to_string(),
+                        return Err(SpanErr::from(WorldLoadingError::KeysNotFound(
+                            "path".to_string(), yaml_path
                         )))
                     }
                 };
-                let transform = get_transform(model)?;
+                let transform = get_transform(model,yaml_path.clone())?;
                 let mut gltf_obj = SuteraGltfObject::new(path.to_string(), transform)?;
                 gltf_obj.generate_model(&mut base_node)?;
             }
@@ -56,17 +56,17 @@ pub fn load_world(
 
                 // model_type が空だったときの処理
                 let Some(type_str) = model_type.as_str() else {
-                    let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr("model_type was None.".to_string()));
+                    let e = SpanErr::from(WorldLoadingError::NoneObjectType("model_type".to_string(),yaml_path));
                     return Err(e);
                 };
 
-                let e = SpanErr::from(WorldLoadingError::InvalidObjectTypeErr(
+                let e = SpanErr::from(WorldLoadingError::InvalidObjectType(
                     type_str.to_string()
                 ));
                 return Err(e);
             }
             None => {
-                return Err(SpanErr::from(worldformat_error("type").error));
+                return Err(world_format_error("type",yaml_path));
             }
         }
     }
@@ -75,39 +75,38 @@ pub fn load_world(
 
 //yamlから3dモデルの情報のsequence(Vector)を取得
 #[instrument(skip_all, name = "get_sequence", level = "trace")]
-fn get_sequence(value: &Value) -> Result<Sequence, SpanErr<WorldLoadingError>> {
+fn get_sequence(value: &Value, yaml_path: String) -> Result<Sequence, SpanErr<WorldLoadingError>> {
     let Some(specs) = value.get("specs") else{
-        return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr("'specs' key was not found.".to_string(),)
+        return Err(SpanErr::from(WorldLoadingError::KeysNotFound("specs".to_string(), yaml_path)
     ))};
     let Some(objects) = specs.get("objects") else{
-        return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-            "'objects' key was not found.".to_string(),
+        return Err(SpanErr::from(WorldLoadingError::KeysNotFound(
+            "objects".to_string(), yaml_path
         )))
     };
     match objects.as_sequence() {
         Some(sequence) => return Ok(sequence.clone()),
         None => {
-            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                "couldn't get sequence from this object.".to_string(),
+            return Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormat(
+                "couldn't get sequence from this object.".to_string(), yaml_path
             )))
         }
     };
 }
 
-#[instrument(skip_all, name = "worldformaterror", level = "trace")]
-fn worldformat_error<'a, T: Into<Cow<'a, str>>>(key: T) -> SpanErr<WorldLoadingError> {
-    let reason = format!("'{}' key was not found ", key.into());
-    let e = SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(reason));
+#[instrument(skip_all, name = "world_format_error", level = "trace")]
+fn world_format_error<'a, T: Into<Cow<'a, str>>>(key: T, yaml_path: String) -> SpanErr<WorldLoadingError> {
+    let e = SpanErr::from(WorldLoadingError::KeysNotFound(key.into().to_string(), yaml_path));
     return e;
 }
 
 #[instrument(skip_all, name = "get_transform", level = "trace")]
-fn get_transform(model: &Value) -> Result<[f32; 10], SpanErr<WorldLoadingError>> {
+fn get_transform(model: &Value, yaml_path: String) -> Result<[f32; 10], SpanErr<WorldLoadingError>> {
     let mut transform: [f32; 10] = [0.0; 10];
     if let Some(transform_vec) = model.get("transform").and_then(|s| s.as_sequence()) {
         if transform_vec.len() != 10 {
-            Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-                "Object transform need 10 numbers:(x,y,z,rx,ry,rz,rw,sx,sy,sz)".to_string(),
+            Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormat(
+                "Object transform need 10 numbers:(x,y,z,rx,ry,rz,rw,sx,sy,sz)".to_string(), yaml_path
             )))
         } else {
             for i in 0..10 {
@@ -118,8 +117,8 @@ fn get_transform(model: &Value) -> Result<[f32; 10], SpanErr<WorldLoadingError>>
             Ok(transform)
         }
     } else {
-        Err(SpanErr::from(WorldLoadingError::InvalidSuteraFormatErr(
-            "'transform' key was not found.".to_string(),
+        Err(SpanErr::from(WorldLoadingError::KeysNotFound(
+            "transform".to_string(), yaml_path
         )))
     }
 }
@@ -127,17 +126,21 @@ fn get_transform(model: &Value) -> Result<[f32; 10], SpanErr<WorldLoadingError>>
 #[derive(Error, Debug)]
 pub enum WorldLoadingError {
     #[error("This world file path ({0}) is invalid")]
-    InvalidYamlPathErr(String),
-    #[error("This yaml file does not conform to SuteraWorldFormat. detail: {0}")]
-    InvalidSuteraFormatErr(String),
-    #[error("This 3Dobject type '{0}' is not yet implemented.")]
-    InvalidObjectTypeErr(String),
+    InvalidYamlPath(String),
+    #[error("This yaml file ({1}) does not conform to SuteraWorldFormat. detail: {0}")]
+    InvalidSuteraFormat(String,String),
+    #[error("'{0}' key was not fount in {1}.")]
+    KeysNotFound(String,String),
+    #[error("This 3D object type '{0}' is not yet implemented.")]
+    InvalidObjectType(String),
+    #[error("This 3D object type '{0}' is None in {1}.")]
+    NoneObjectType(String,String),
     #[error("Failed to load yaml file. Please check file. Reason: {0}")]
-    SerdeYamlLoadingError(String),
-    #[error("Failed to opening yaml file. Please check file. Reason: {0}")]
-    YamlFileOpenError(String),
-    #[error("Failed to opening glTF file. Please check file. Reason: {0}")]
-    GltfFileOpenError(String),
+    SerdeYamlLoading(String),
+    #[error("Failed to opening yaml file. Please check file ({1}). Reason: {0}")]
+    YamlFileOpen(String,String),
+    #[error("Failed to opening glTF file in {1}. Please check file. Reason: {0}")]
+    GltfFileOpen(String,String),
     #[error("Failed to generate 3d model. Please check file or settings. Reason: {0}")]
-    Generate3DModelError(String),
+    Generate3DModel(String),
 }
