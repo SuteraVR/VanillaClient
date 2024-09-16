@@ -36,7 +36,7 @@ impl INode for SuteraWorldLoader {
     #[instrument(skip_all, name = "process", level = "info")]
     #[allow(unused_variables)]
     fn process(&mut self, delta: f64) {
-        if self.is_initialized{
+        if self.is_initialized {
             //initが2回実行されてしまうため、初期化処理などはここで処理
             tracing_subscriber::Registry::default()
                 .with(tracing_subscriber::fmt::layer()  //エラーメッセージを文字列に整形

@@ -1,6 +1,6 @@
 use super::error::SpanErr;
+use super::transform::{SetSuteraTransform, SuteraTransform};
 use super::yaml_loader::WorldLoadingError;
-use super::transform::{SuteraTransform,SetSuteraTransform};
 #[allow(unused_imports)]
 use godot::classes::{CollisionObject3D, GltfDocument, GltfState};
 use godot::obj::NewGd;
@@ -15,7 +15,10 @@ pub struct SuteraGltfObject {
 }
 
 impl SuteraGltfObject {
-    pub fn new(path: String, transform: SuteraTransform) -> Result<Self, SpanErr<WorldLoadingError>> {
+    pub fn new(
+        path: String,
+        transform: SuteraTransform,
+    ) -> Result<Self, SpanErr<WorldLoadingError>> {
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
         let fixed_path = SuteraGltfObject::path_solver(path);
@@ -28,7 +31,8 @@ impl SuteraGltfObject {
                 //collider,
             }),
             _ => Err(SpanErr::from(WorldLoadingError::GltfFileOpen(
-                "Incorrect gltf path or this gltf file is broken.".to_string(),fixed_path.to_string()
+                "Incorrect gltf path or this gltf file is broken.".to_string(),
+                fixed_path.to_string(),
             ))),
         }
     }
@@ -37,9 +41,11 @@ impl SuteraGltfObject {
         &mut self,
         root: &mut Gd<Node>,
     ) -> Result<(), SpanErr<WorldLoadingError>> {
-        let Some(node) = self.doc.generate_scene(self.state.clone()) else {return Err(SpanErr::from(WorldLoadingError::Generate3DModel(
-            "Couldn't generate scene from gltf file. Gltf file is probably empty.".to_string(),
-        )))};
+        let Some(node) = self.doc.generate_scene(self.state.clone()) else {
+            return Err(SpanErr::from(WorldLoadingError::Generate3DModel(
+                "Couldn't generate scene from gltf file. Gltf file is probably empty.".to_string(),
+            )));
+        };
         let node = self.set_object(&node);
         root.add_child(node);
         Ok(())
