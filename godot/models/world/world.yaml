@@ -23,44 +23,45 @@ specs:
       type: gltf
       path: world/sakura_shrine.glb
       transform:
-        - 0
-        - 0
-        - 0
-        - 0
-        - 0
-        - 0
-        - 1.0
-        - 1.0
-        - 1.0
-        - 1.0
+        position_x: 0
+        position_y: 0
+        position_z: 0
+        rotation_x: 0
+        rotation_y: 0
+        rotation_z: 0
+        rotation_w: 1.0
+        scale_x: 1.0
+        scale_y: 1.0
+        scale_z: 1.0
 
   - name: gaitou_right
     model:
        type: gltf
        path: world/gaitou.glb
        transform:
-        - 2.5
-        - 0
-        - 29.5
-        - 0
-        - 0
-        - 0
-        - 1.0
-        - 1.0
-        - 1.0
-        - 1.0
+        position_x: 2.5
+        position_y: 0
+        position_z: 29.5
+        rotation_x: 0
+        rotation_y: 0
+        rotation_z: 0
+        rotation_w: 1.0
+        scale_x: 1.0
+        scale_y: 1.0
+        scale_z: 1.0
+
   - name: gaitou_left
     model:
        type: gltf
        path: world/gaitou.glb
        transform:
-        - -2.5
-        - 0
-        - 29.5
-        - 0
-        - 0
-        - 0
-        - 1.0
-        - 1.0
-        - 1.0
-        - 1.0
+        position_x: -2.5
+        position_y: 0
+        position_z: 29.5
+        rotation_x: 0
+        rotation_y: 0
+        rotation_z: 0
+        rotation_w: 1.0
+        scale_x: 1.0
+        scale_y: 1.0
+        scale_z: 1.0

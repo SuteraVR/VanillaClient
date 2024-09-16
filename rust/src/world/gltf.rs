@@ -9,12 +9,12 @@ use godot::prelude::*;
 pub struct SuteraGltfObject {
     doc: Gd<GltfDocument>,
     state: Gd<GltfState>,
-    transform: [f32; 10],
+    transform: (Vector3, Quaternion, Vector3), // todo: Transform3D型を使うようにする
     //追加予定：collider: Vec<CollisionObject3D>,
 }
 
 impl SuteraGltfObject {
-    pub fn new(path: String, transform: [f32; 10]) -> Result<Self, SpanErr<WorldLoadingError>> {
+    pub fn new(path: String, transform: (Vector3,Quaternion,Vector3)) -> Result<Self, SpanErr<WorldLoadingError>> {
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
         let fixed_path = SuteraGltfObject::path_solver(path);
@@ -52,24 +52,13 @@ impl SuteraGltfObject {
 
     fn set_object(&self, obj: &Gd<Node>) -> Gd<Node> {
         let mut obj_3d = obj.clone().cast::<Node3D>();
-        let obj_position: Vector3 =
-            Vector3::new(self.transform[0], self.transform[1], self.transform[2]);
+        let obj_position: Vector3 = self.transform.0;
         obj_3d.set_position(obj_position);
-        godot_print!(
-            "set position:{}",obj_position
-        );
-        let obj_rotation: Quaternion = Quaternion::new(
-            self.transform[3],
-            self.transform[4],
-            self.transform[5],
-            self.transform[6],
-        );
+        godot_print!("set position:{}",obj_position);
+        let obj_rotation: Quaternion = self.transform.1;
         obj_3d.set_quaternion(obj_rotation);
-        godot_print!(
-            "set rotation:{}",obj_rotation
-        );
-        let obj_scale: Vector3 =
-            Vector3::new(self.transform[7], self.transform[8], self.transform[9]);
+        godot_print!("set rotation:{}",obj_rotation);
+        let obj_scale: Vector3 = self.transform.2;
         obj_3d.set_scale(obj_scale);
         godot_print!(
             "set scale:{}",obj_scale
