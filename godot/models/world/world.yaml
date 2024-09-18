@@ -1,5 +1,5 @@
 metadata:
-  type: sutera-scene@0.1.0
+  world_format: sutera-scene@0.1.0
   name: Sakura-shrine"桜神社街道"
   version: 0.1.0
 specs:
@@ -20,7 +20,7 @@ specs:
   objects:
   - name: sakura-shrine 
     model:
-      type: gltf
+      model_type: gltf
       path: world/sakura_shrine.glb
       transform:
         position_x: 0
@@ -36,7 +36,7 @@ specs:
 
   - name: gaitou_right
     model:
-       type: gltf
+       model_type: gltf
        path: world/gaitou.glb
        transform:
         position_x: 2.5
@@ -52,7 +52,7 @@ specs:
 
   - name: gaitou_left
     model:
-       type: gltf
+       model_type: gltf
        path: world/gaitou.glb
        transform:
         position_x: -2.5

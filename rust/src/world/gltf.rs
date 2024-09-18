@@ -16,12 +16,12 @@ pub struct SuteraGltfObject {
 
 impl SuteraGltfObject {
     pub fn new(
-        path: String,
+        path: &String,
         transform: SuteraTransform,
     ) -> Result<Self, SpanErr<WorldLoadingError>> {
         let model_state = GltfState::new_gd();
         let mut model_doc = GltfDocument::new_gd();
-        let fixed_path = SuteraGltfObject::path_solver(path);
+        let fixed_path = SuteraGltfObject::path_solver(path.to_string());
         godot_print!("fixed_path: {}", fixed_path);
         match model_doc.append_from_file(fixed_path.clone(), model_state.clone()) {
             godot::global::Error::OK => Ok(Self {
