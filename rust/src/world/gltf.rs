@@ -1,8 +1,7 @@
 use super::error::SpanErr;
 use super::transform::{SetSuteraTransform, SuteraTransform};
 use super::yaml_loader::WorldLoadingError;
-#[allow(unused_imports)]
-use godot::classes::{CollisionObject3D, GltfDocument, GltfState};
+use godot::classes::{GltfDocument, GltfState};
 use godot::obj::NewGd;
 use godot::prelude::*;
 
