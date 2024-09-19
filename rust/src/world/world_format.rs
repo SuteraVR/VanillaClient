@@ -53,14 +53,14 @@ pub struct Sutera3DModel {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct SuteraTransformSpecs{
-    pub pos_x: f32,
-    pub pos_y: f32,
-    pub pos_z: f32,
-    pub rot_x: f32,
-    pub rot_y: f32,
-    pub rot_z: f32,
-    pub rot_w: f32,
+pub struct SuteraTransformSpecs {
+    pub position_x: f32,
+    pub position_y: f32,
+    pub position_z: f32,
+    pub rotation_x: f32,
+    pub rotation_y: f32,
+    pub rotation_z: f32,
+    pub rotation_w: f32,
     pub scale_x: f32,
     pub scale_y: f32,
     pub scale_z: f32,

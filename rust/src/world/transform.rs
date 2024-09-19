@@ -29,16 +29,17 @@ impl fmt::Display for SuteraTransform {
     }
 }
 
-impl From<SuteraTransformSpecs> for SuteraTransform{
+impl From<SuteraTransformSpecs> for SuteraTransform {
     fn from(value: SuteraTransformSpecs) -> Self {
-        let position: Vector3 = Vector3::new(value.pos_x,value.pos_y,value.pos_z);
-        let rotation: Quaternion = Quaternion::new(value.rot_x,value.rot_y,value.rot_z,value.rot_w);
-        let scale: Vector3 = Vector3::new(value.scale_x,value.scale_y,value.scale_z)
-        return Self{
+        let position: Vector3 = Vector3::new(value.position_x, value.position_y, value.position_z);
+        let rotation: Quaternion =
+            Quaternion::new(value.rotation_x, value.rotation_y, value.rotation_z, value.rotation_w);
+        let scale: Vector3 = Vector3::new(value.scale_x, value.scale_y, value.scale_z);
+        return Self {
             position,
             rotation,
             scale,
-        }
+        };
     }
 }
 
