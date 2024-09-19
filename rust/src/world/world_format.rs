@@ -1,4 +1,3 @@
-use super::transform::SuteraTransform;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -50,5 +49,19 @@ pub struct WorldObject {
 pub struct Sutera3DModel {
     pub model_type: String,
     pub path: String,
-    pub transform: SuteraTransform,
+    pub transform: SuteraTransformSpecs,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct SuteraTransformSpecs{
+    pub pos_x: f32,
+    pub pos_y: f32,
+    pub pos_z: f32,
+    pub rot_x: f32,
+    pub rot_y: f32,
+    pub rot_z: f32,
+    pub rot_w: f32,
+    pub scale_x: f32,
+    pub scale_y: f32,
+    pub scale_z: f32,
 }

@@ -1,6 +1,7 @@
 use super::error::SpanErr;
 use super::gltf::SuteraGltfObject;
 use super::world_format::SuteraWorldYamlFormat;
+use super::transform::SuteraTransform;
 use godot::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
@@ -29,8 +30,8 @@ pub fn load_world(
         .map_err(|e| SpanErr::from(WorldLoadingError::SerdeYamlLoading(e.to_string())))?;
 
     for obj_data in world.specs.objects.iter() {
-        let mut obj =
-            SuteraGltfObject::new(&obj_data.model.path, obj_data.model.transform.clone())?;
+        let transform = SuteraTransform::from(obj_data.model.transform.clone());
+        let mut obj = SuteraGltfObject::new(&obj_data.model.path, transform)?;
         let _ = obj.generate_model(&mut base_node);
     }
 
