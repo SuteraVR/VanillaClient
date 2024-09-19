@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://cu2xm8nqg7l3w"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="SuteraWorldLoader" type="SuteraWorldLoader" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.14902, 11.6452)
+rotation_edit_mode = 1
+current = true
