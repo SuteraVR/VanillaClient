@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 color-spantrace = "0.2.1"
+tracing-spanned = { git = "https://github.com/pulsuite/tracing-spanned", branch = "main" }
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_yaml = "0.9.34"

@@ -452,6 +452,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-error",
+ "tracing-spanned",
  "tracing-subscriber",
 ]
 
@@ -662,6 +663,15 @@ dependencies = [
  "log",
  "once_cell",
  "tracing-core",
+]
+
+[[package]]
+name = "tracing-spanned"
+version = "0.1.0"
+source = "git+https://github.com/pulsuite/tracing-spanned?branch=main#38c3eb0a61f6bce19fcb0d0e30fd9570ab5271f8"
+dependencies = [
+ "tracing",
+ "tracing-error",
 ]
 
 [[package]]
