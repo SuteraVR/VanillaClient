@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://dl28hx32p48o1"]
+
+[ext_resource type="PackedScene" uid="uid://cu2xm8nqg7l3w" path="res://world.tscn" id="1_i2fi8"]
+
+[node name="SuteraVR" type="Node3D"]
+
+[node name="World" parent="." instance=ExtResource("1_i2fi8")]
