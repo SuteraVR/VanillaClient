@@ -11,10 +11,15 @@ config_version=5
 [application]
 
 config/name="Godot"
-run/main_scene="res://start_scene.tscn"
+run/main_scene="res://sutera_vr.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
 [dotnet]
 
 project/assembly_name="Godot"
+
+[xr]
+
+openxr/enabled=true
+shaders/enabled=true

@@ -1,6 +1,6 @@
-use super::error::SpanErr;
+use crate::error::SpanErr;
 use super::gltf::SuteraGltfObject;
-use super::transform::SuteraTransform;
+use crate::transform::SuteraTransform;
 use super::world_format::SuteraWorldYamlFormat;
 use godot::prelude::*;
 use std::fs::File;
@@ -10,10 +10,24 @@ use tracing::instrument;
 
 #[instrument(name = "load_world", level = "trace")]
 pub fn load_world(
-    yaml_path: String,
+    world: &SuteraWorldYamlFormat,
     parent_node: &mut Gd<Node>,
 ) -> Result<(), SpanErr<WorldLoadingError>> {
     let mut base_node = parent_node.clone();
+
+    for obj_data in world.specs.objects.iter() {
+        let transform = SuteraTransform::from(obj_data.model.transform.clone());
+        let mut obj = SuteraGltfObject::new(&obj_data.model.path, transform)?;
+        let _ = obj.generate_model(&mut base_node);
+    }
+
+    Ok(())
+}
+
+#[instrument(name = "load_world", level = "trace")]
+pub fn load_world_yaml(
+    yaml_path: String,
+) -> Result<SuteraWorldYamlFormat, SpanErr<WorldLoadingError>> {
 
     //yamlファイルのpathを開く
     let mut yaml_file = File::open(&yaml_path)
@@ -28,14 +42,7 @@ pub fn load_world(
 
     let world:SuteraWorldYamlFormat = serde_yaml::from_str(&contents)  //yamlファイルをデシリアライズしてserdeのValue型(Enum型)を得る
         .map_err(|e| SpanErr::from(WorldLoadingError::SerdeYamlLoading(e.to_string())))?;
-
-    for obj_data in world.specs.objects.iter() {
-        let transform = SuteraTransform::from(obj_data.model.transform.clone());
-        let mut obj = SuteraGltfObject::new(&obj_data.model.path, transform)?;
-        let _ = obj.generate_model(&mut base_node);
-    }
-
-    Ok(())
+    Ok(world)
 }
 
 #[derive(Error, Debug)]

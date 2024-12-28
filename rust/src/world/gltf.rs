@@ -1,5 +1,5 @@
-use super::error::SpanErr;
-use super::transform::{SetSuteraTransform, SuteraTransform};
+use crate::error::SpanErr;
+use crate::transform::{SetSuteraTransform, SuteraTransform};
 use super::yaml_loader::WorldLoadingError;
 use godot::classes::{GltfDocument, GltfState};
 use godot::obj::NewGd;

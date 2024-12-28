@@ -1,7 +1,26 @@
-[gd_scene load_steps=2 format=3 uid="uid://dl28hx32p48o1"]
+[gd_scene load_steps=7 format=3 uid="uid://dl28hx32p48o1"]
 
 [ext_resource type="PackedScene" uid="uid://cu2xm8nqg7l3w" path="res://world.tscn" id="1_i2fi8"]
+[ext_resource type="Texture2D" uid="uid://bsq8p0bkc5sgb" path="res://sunset25.jpg" id="2_ik36w"]
+[ext_resource type="PackedScene" uid="uid://blh3a4quli8uu" path="res://shapell.tscn" id="3_h38xn"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_ltavq"]
+panorama = ExtResource("2_ik36w")
+
+[sub_resource type="Sky" id="Sky_p6dh2"]
+sky_material = SubResource("PanoramaSkyMaterial_ltavq")
+
+[sub_resource type="Environment" id="Environment_6n2pc"]
+background_mode = 2
+sky = SubResource("Sky_p6dh2")
 
 [node name="SuteraVR" type="Node3D"]
 
-[node name="World" parent="." instance=ExtResource("1_i2fi8")]
+[node name="SuteraVR" type="SuteraVR" parent="."]
+
+[node name="World" parent="SuteraVR" instance=ExtResource("1_i2fi8")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SuteraVR"]
+environment = SubResource("Environment_6n2pc")
+
+[node name="shapell" parent="SuteraVR" instance=ExtResource("3_h38xn")]

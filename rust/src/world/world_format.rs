@@ -42,11 +42,11 @@ pub struct WorldBorder {
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct WorldObject {
     pub name: String,
-    pub model: Sutera3DModel,
+    pub model: World3DModel,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
-pub struct Sutera3DModel {
+pub struct World3DModel {
     pub model_type: String,
     pub path: String,
     pub transform: SuteraTransformSpecs,
