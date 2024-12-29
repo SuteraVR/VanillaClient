@@ -35,7 +35,7 @@ impl IXrOrigin3D for AvatarController {
         }).map(|child| child.cast::<XrController3D>());
 
         self.xr_camera = children.iter_shared().find(|child| {
-            child.get_name() == StringName::from("XrCamera")
+            child.get_name() == StringName::from("XRCamera3D")
         }).map(|child| child.cast::<XrCamera3D>());
     }
 
