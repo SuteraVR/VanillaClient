@@ -1,3 +1,3 @@
-pub mod gltf;
+pub mod world_gltf;
 pub mod world_format;
-pub mod yaml_loader;
+pub mod world_loader;

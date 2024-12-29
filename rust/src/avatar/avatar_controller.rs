@@ -45,7 +45,13 @@ impl IXrOrigin3D for AvatarController {
         if let Some(controller) = left_controller_clone{
             let stick_vector = controller.get_vector2("primary".into());
             let speed = self.speed;
-            self.base_mut().translate(Vector3::new(-1.0 * stick_vector.x * speed * delta as f32, 0.0, stick_vector.y * speed * delta as f32));
+            let move_vector = Vector2::new(-1.0 * stick_vector.x * speed * delta as f32, stick_vector.y * speed * delta as f32);
+            let Some(xr_camera) = self.xr_camera.clone() else{
+                godot_error!("No XrCamera found");
+                return;
+            };
+            let global_vector = AvatarController::rotate_matrix(move_vector.x, move_vector.y, xr_camera.get_global_rotation().y);
+            self.base_mut().translate(Vector3::new(global_vector.x, 0.0, global_vector.y));
         }
 
         let right_controller_clone = self.right_controller.clone();
@@ -54,5 +60,14 @@ impl IXrOrigin3D for AvatarController {
             let speed = self.speed;
             self.base_mut().rotate_y(-stick_vector.x * speed * delta as f32);
         }
+    }
+
+}
+
+impl AvatarController{
+    fn rotate_matrix(x:f32,y:f32,theta: f32)->Vector2{
+        let x = x * theta.cos() - y * theta.sin();
+        let y = x * theta.sin() + y * theta.cos();
+        Vector2::new(x,y)
     }
 }

@@ -31,6 +31,7 @@ size = Vector3(0.05, 0.05, 0.05)
 [node name="Node3D" type="Node3D"]
 
 [node name="SuteraWorldLoader" type="SuteraWorldLoader" parent="."]
+yaml_path = "models/world/world.yaml"
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(150, 0, 0, 0, 1, 0, 0, 0, 150, 0, -0.564415, 0)
