@@ -1,5 +1,41 @@
-[gd_scene format=3 uid="uid://cu2xm8nqg7l3w"]
+[gd_scene load_steps=6 format=3 uid="uid://cu2xm8nqg7l3w"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f0sdp"]
+albedo_color = Color(0.311473, 0.194577, 0.135943, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3tk6p"]
+material = SubResource("StandardMaterial3D_f0sdp")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_d7ji2"]
+lifetime_randomness = 0.18
+emission_shape_scale = Vector3(10, 10, 10)
+emission_shape = 1
+emission_sphere_radius = 1.0
+gravity = Vector3(0, -0.13, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_em875"]
+albedo_color = Color(1, 0.572549, 1, 1)
+ao_enabled = true
+backlight_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_y62i5"]
+material = SubResource("StandardMaterial3D_em875")
+size = Vector3(0.05, 0.05, 0.05)
 
 [node name="Node3D" type="Node3D"]
 
 [node name="SuteraWorldLoader" type="SuteraWorldLoader" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(150, 0, 0, 0, 1, 0, 0, 0, 150, 0, -0.564415, 0)
+mesh = SubResource("BoxMesh_3tk6p")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.114562, 0.559048, -0.821182, -0.077244, 0.829135, 0.553686, 0.990408, -3.92531e-09, 0.138171, -6.08332, 3.11276, 0)
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+amount = 300
+lifetime = 6.26
+process_material = SubResource("ParticleProcessMaterial_d7ji2")
+draw_pass_1 = SubResource("BoxMesh_y62i5")
